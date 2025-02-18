@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (password_verify($password, $row['password'])) {
                 $_SESSION['user'] = [
                     'email' => $row['email'],
-                    'username' => $row['username']
+                    'Username' => $row['Username']
                 ];                
                 header("Location: index.php");
                 exit();
