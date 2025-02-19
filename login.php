@@ -1,6 +1,6 @@
 <?php
 include 'connect.php';
-session_start();
+
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
@@ -19,6 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $row = $result->fetch_assoc();
             if (password_verify($password, $row['password'])) {
                 $_SESSION['user'] = [
+                    'id_user' => $row['id_user'],
                     'email' => $row['email'],
                     'Username' => $row['Username']
                 ];                

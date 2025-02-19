@@ -3,16 +3,18 @@ include 'connect.php';
 session_start();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $tugas = $_POST['tugas'];
-    $prioritas = $_POST['prioritas']; 
+    $tugas = mysqli_real_escape_string($conn, $_POST['tugas']);
+    $prioritas = mysqli_real_escape_string($conn, $_POST['prioritas']); 
+    $id_kategori = mysqli_real_escape_string($conn, $_POST['id_kategori']); 
     $status = "not complete"; 
 
-    if ($prioritas !== 'normal' && $prioritas !== 'urgent') {
+    if (!in_array($prioritas, ['normal', 'urgent'])) {
         echo "Prioritas tidak valid!";
         exit;
     }
 
-    $query = "INSERT INTO tugas (tugas, prioritas, status) VALUES ('$tugas', '$prioritas', '$status')";
+    $query = "INSERT INTO tugas (tugas, prioritas, status, id_kategori) 
+              VALUES ('$tugas', '$prioritas', '$status', '$id_kategori')";
 
     if (mysqli_query($conn, $query)) {
         header("Location: index.php"); 
@@ -22,8 +24,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-$query = "SELECT * FROM tugas ORDER BY FIELD(prioritas, 'urgent', 'normal'), id_tugas DESC";
+
+$query = "SELECT tugas.*, kategori.kategori 
+          FROM tugas 
+          LEFT JOIN kategori ON tugas.id_kategori = kategori.id_kategori 
+          ORDER BY FIELD(prioritas, 'urgent', 'normal'), id_tugas DESC";
 $result = mysqli_query($conn, $query);
+
 ?>
 
 <!doctype html>
@@ -33,19 +40,16 @@ $result = mysqli_query($conn, $query);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>To-Do List</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script>
-        function ubahStatus(id) {
-            window.location.href = "ubah_status.php?id=" + id;
-        }
-    </script>
 </head>
 <style>
-    .floating-buttons {
+    .floating-buttons a {
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         position: fixed;
         bottom: 20px;
         right: 20px;
-    }
-    .floating-buttons button {
         background: blue;
         color: white;
         border: none;
@@ -61,6 +65,8 @@ $result = mysqli_query($conn, $query);
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid d-flex justify-content-between align-items-center">
             <h2 class="mb-0">To-Do List</h2>
+            <a class="navbar-brand m-2" href="index.php">Home</a>
+            <a class="navbar-brand m-2" href="kategori.php">Kategori</a>
             <form class="d-flex mx-auto" role="search">
                 <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
                 <button class="btn btn-outline-success" type="submit">Search</button>
@@ -86,6 +92,7 @@ $result = mysqli_query($conn, $query);
             <thead>
                 <tr>
                     <th>Tugas</th>
+                    <th>Kategori</th>
                     <th>Prioritas</th>
                     <th>Status</th>
                     <th>Aksi</th>
@@ -95,17 +102,19 @@ $result = mysqli_query($conn, $query);
                 <?php while ($row = mysqli_fetch_assoc($result)): ?>
                 <tr>
                     <td><?= htmlspecialchars($row['tugas']) ?></td>
+                    <td><?= !empty($row['kategori']) ? htmlspecialchars($row['kategori']) : '<i>Tidak ada</i>' ?></td>
                     <td>
                         <span class="badge bg-<?= $row['prioritas'] == 'urgent' ? 'danger' : 'secondary' ?>">
                             <?= htmlspecialchars($row['prioritas']) ?>
                         </span>
                     </td>
                     <td>
-                        <button class="btn btn-<?= $row['status'] == 'complete' ? 'success' : 'warning' ?>" 
-                                onclick="ubahStatus(<?= $row['id_tugas'] ?>)">
+                        <a href="ubah_status.php?id=<?= $row['id_tugas'] ?>" 
+                            class="btn btn-<?= $row['status'] == 'complete' ? 'success' : 'warning' ?>">
                             <?= htmlspecialchars($row['status']) ?>
-                        </button>
+                        </a>
                     </td>
+
                     <td>
                         <a href="edit.php?id=<?= $row['id_tugas'] ?>" class="btn btn-warning btn-sm">Edit</a>
                         <a href="delete.php?id=<?= $row['id_tugas'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('Hapus data ini?')">Hapus</a>
@@ -115,6 +124,7 @@ $result = mysqli_query($conn, $query);
             </tbody>
         </table>
     </div>
+    
     <div class="floating-buttons">
         <a class="add" href="tambah_data.php">➕</a>
     </div>
