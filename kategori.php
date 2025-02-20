@@ -2,7 +2,16 @@
 include 'connect.php';
 session_start();
 
+$search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
+
+$query = "SELECT * FROM kategori";
+if (!empty($search)) {
+    $query .= " WHERE kategori LIKE '%$search%'";
+}
+
+$result = mysqli_query($conn, $query);
 ?>
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -42,8 +51,9 @@ session_start();
                 <h2 class="mb-0">To-Do List</h2>
                 <a class="navbar-brand m-2" href="index.php">Home</a>
                 <a class="navbar-brand m-2" href="kategori.php">Kategori</a>
-                <form class="d-flex mx-auto" role="search">
-                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                <a class="navbar-brand m-2" href="riwayat.php">Riwayat</a>
+                <form class="d-flex mx-auto" method="GET" action="kategori.php">
+                    <input class="form-control me-2" type="search" name="search" placeholder="Cari kategori" value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '' ?>">
                     <button class="btn btn-outline-success" type="submit">Search</button>
                 </form>
                 <ul class="navbar-nav ms-auto">
@@ -61,9 +71,9 @@ session_start();
             </div>
         </nav>
         <div class="container mt-3">
-            <h1 class="mt-4">Kategori</h1>
+            <h3 class="mt-4">Daftar Kategori</h3>
             <div class="col-md-12">
-                <table class="table table-bordered">
+                <table class="table table-striped">
                     <thead>
                         <tr>
                             <th>No</th>
@@ -76,32 +86,32 @@ session_start();
                         $i = 1;
                         $query = mysqli_query($conn, "SELECT * FROM kategori");
                         
-                        if (mysqli_num_rows($query) > 0) {
-                            while ($data = mysqli_fetch_array($query)) {
-                                ?>
+                        if (mysqli_num_rows($result) > 0) {
+                            while ($data = mysqli_fetch_array($result)) {
+                        ?>
                                 <tr>
                                     <td><?php echo $i++; ?></td>
-                                    <td><?php echo $data['kategori']; ?></td>
+                                    <td><?php echo htmlspecialchars($data['kategori']); ?></td>
                                     <td>
-                                        <a href="kategori_ubah.php?id=<?= $data['id_kategori']; ?>" class="btn btn-info">Ubah</a>
-                                        <a href="kategori_hapus.php?id=<?php echo $data['id_kategori']; ?>" 
-                                            class="btn btn-danger" 
-                                            onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
-                                            Hapus
+                                        <a href="kategori_ubah.php?id=<?= $data['id_kategori']; ?>" class="btn btn-warning btn-sm">Edit</a>
+                                        <a href="kategori_hapus.php?id=<?= $data['id_kategori']; ?>" 
+                                           class="btn btn-danger btn-sm" 
+                                           onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+                                           Hapus
                                         </a>
-
                                     </td>
                                 </tr>
-                                <?php
-                            }
+                        <?php
+                        }
                         } else {
-                            ?>
+                        ?>
                             <tr>
-                                <td colspan="3" class="text-center">Data tidak ditemukan</td>
+                                <td colspan="3" class="text-center">Kategori tidak ditemukan</td>
                             </tr>
-                            <?php
+                        <?php
                         }
                         ?>
+                        
                     </tbody>
                 </table>
             </div>

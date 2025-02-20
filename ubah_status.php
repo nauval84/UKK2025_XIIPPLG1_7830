@@ -1,21 +1,29 @@
 <?php
 include 'connect.php';
 
-if (isset($_GET['id'])) {
-    $id = intval($_GET['id']);
-
-    $query = "SELECT status FROM tugas WHERE id_tugas = $id";
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $id_tugas = intval($_POST['id_tugas']);
+    $query = "SELECT * FROM tugas WHERE id_tugas = $id_tugas";
     $result = mysqli_query($conn, $query);
     $row = mysqli_fetch_assoc($result);
 
-    $new_status = ($row['status'] == 'complete') ? 'not complete' : 'complete';
+    if ($row) {
+        if ($row['status'] == 'not complete') {
+            $update_query = "UPDATE tugas SET status = 'complete' WHERE id_tugas = $id_tugas";
+            mysqli_query($conn, $update_query);
+        } else {
+            $tugas = $row['tugas'];
+            $prioritas = $row['prioritas'];
+            $insert_query = "INSERT INTO riwayat (tugas, prioritas) VALUES ('$tugas', '$prioritas')";
+            mysqli_query($conn, $insert_query);
+            $delete_query = "DELETE FROM tugas WHERE id_tugas = $id_tugas";
+            mysqli_query($conn, $delete_query);
+        }
 
-    $update_query = "UPDATE tugas SET status = '$new_status' WHERE id_tugas = $id";
-    if (mysqli_query($conn, $update_query)) {
-        header("Location: index.php"); 
-        exit;
+        header("Location: index.php");
+        exit();
     } else {
-        echo "Gagal mengubah status: " . mysqli_error($conn);
+        echo "Tugas tidak ditemukan.";
     }
 }
 ?>

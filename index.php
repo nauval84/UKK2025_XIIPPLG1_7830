@@ -25,10 +25,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 
+$search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
+
 $query = "SELECT tugas.*, kategori.kategori 
           FROM tugas 
-          LEFT JOIN kategori ON tugas.id_kategori = kategori.id_kategori 
-          ORDER BY FIELD(prioritas, 'urgent', 'normal'), id_tugas DESC";
+          LEFT JOIN kategori ON tugas.id_kategori = kategori.id_kategori";
+
+if (!empty($search)) {
+    $query .= " WHERE tugas.tugas LIKE '%$search%' ";
+}
+
+$query .= " ORDER BY FIELD(prioritas, 'urgent', 'normal'), id_tugas DESC";
+
 $result = mysqli_query($conn, $query);
 
 ?>
@@ -67,8 +75,9 @@ $result = mysqli_query($conn, $query);
             <h2 class="mb-0">To-Do List</h2>
             <a class="navbar-brand m-2" href="index.php">Home</a>
             <a class="navbar-brand m-2" href="kategori.php">Kategori</a>
-            <form class="d-flex mx-auto" role="search">
-                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+            <a class="navbar-brand m-2" href="riwayat.php">Riwayat</a>
+            <form class="d-flex mx-auto" method="GET" action="index.php">
+                <input class="form-control me-2" type="search" name="search" placeholder="Cari tugas" value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '' ?>">
                 <button class="btn btn-outline-success" type="submit">Search</button>
             </form>
             <ul class="navbar-nav ms-auto">
@@ -77,7 +86,7 @@ $result = mysqli_query($conn, $query);
                         <?php echo isset($_SESSION['user']) ? $_SESSION['user']['Username'] : 'Guest'; ?>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#">Profil</a></li>
+                        <li><a class="dropdown-item" href="profile.php">Profil</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="logout.php">Logout</a></li>
                     </ul>
@@ -88,7 +97,7 @@ $result = mysqli_query($conn, $query);
 
     <div class="container mt-3">
         <h3>Daftar Tugas</h3>
-        <table class="table table-bordered">
+        <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Tugas</th>
@@ -109,11 +118,14 @@ $result = mysqli_query($conn, $query);
                         </span>
                     </td>
                     <td>
-                        <a href="ubah_status.php?id=<?= $row['id_tugas'] ?>" 
-                            class="btn btn-<?= $row['status'] == 'complete' ? 'success' : 'warning' ?>">
-                            <?= htmlspecialchars($row['status']) ?>
-                        </a>
+                        <form method="POST" action="ubah_status.php">
+                            <input type="hidden" name="id_tugas" value="<?= $row['id_tugas'] ?>">
+                            <button type="submit" class="btn btn-<?= $row['status'] == 'complete' ? 'success' : 'warning' ?>">
+                                <?= htmlspecialchars($row['status']) ?>
+                            </button>
+                        </form>
                     </td>
+
 
                     <td>
                         <a href="edit.php?id=<?= $row['id_tugas'] ?>" class="btn btn-warning btn-sm">Edit</a>

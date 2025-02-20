@@ -21,7 +21,7 @@ session_start();
                         <?php
                         $id = $_GET['id'];
                         if (isset($_POST['submit'])) {                       
-                            $kategori_buku = mysqli_real_escape_string($conn, $_POST['kategori']);
+                            $kategori = mysqli_real_escape_string($conn, $_POST['kategori']);
                             $query = mysqli_query($conn, "UPDATE kategori set kategori='$kategori' where id_kategori=$id");
 
                             if ($query) {

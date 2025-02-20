@@ -33,7 +33,7 @@ session_start();
                                         echo '<script>alert("Tambah data gagal. ' . mysqli_error($conn) . '");</script>';
                                     }
                                 }
-}
+                            }
 
                         ?>
                         <div class="row mb-3">
